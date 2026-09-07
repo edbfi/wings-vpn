@@ -245,7 +245,6 @@ func (fu *s3FileUploader) uploadPart(ctx context.Context, part string, size int6
 
 		return nil
 	}, fu.backoff(ctx))
-
 	if err != nil {
 		if v, ok := err.(*backoff.PermanentError); ok {
 			return "", v.Unwrap()

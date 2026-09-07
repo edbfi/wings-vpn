@@ -37,11 +37,11 @@ type Client interface {
 }
 
 type client struct {
-	httpClient  *http.Client
-	baseUrl     string
-	tokenId     string
-	token       string
-	maxAttempts int
+	httpClient    *http.Client
+	baseUrl       string
+	tokenId       string
+	token         string
+	maxAttempts   int
 	customHeaders map[string]string
 }
 
@@ -118,7 +118,7 @@ func (c *client) requestOnce(ctx context.Context, method, path string, body io.R
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s.%s", c.tokenId, c.token))
-	
+
 	// Apply custom headers, but prevent overriding critical headers
 	criticalHeaders := map[string]bool{
 		"Authorization": true,

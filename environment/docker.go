@@ -2,8 +2,8 @@ package environment
 
 import (
 	"context"
-	"strings"
 	"strconv"
+	"strings"
 	"sync"
 
 	"emperror.dev/errors"
@@ -145,18 +145,18 @@ func createDockerNetwork(ctx context.Context, cli *client.Client) error {
 		errStr := err.Error()
 		if strings.Contains(errStr, "Pool overlaps") || strings.Contains(errStr, "invalid pool request") {
 			log.Warn("configured subnet conflicts with existing network, letting Docker auto-assign subnet...")
-			
+
 			// Retry without specifying IPAM config - let Docker auto-assign
 			createOpts.IPAM = &network.IPAM{
 				Driver: "default",
 				// Don't specify Config - let Docker choose available subnets
 			}
-			
+
 			_, err = cli.NetworkCreate(ctx, nw.Name, createOpts)
 			if err != nil {
 				return errors.Wrap(err, "environment/docker: failed to create network even with auto-assigned subnet")
 			}
-			
+
 			log.Info("network created successfully with Docker auto-assigned subnet")
 		} else {
 			return errors.Wrap(err, "environment/docker: failed to create network")

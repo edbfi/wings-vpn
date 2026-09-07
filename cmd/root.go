@@ -535,12 +535,12 @@ var pelicanRowHues = [6]hue{
 
 var (
 	hueLightCyan = hue{103, 232, 249, 123} // #67E8F9 — W I N G S letters
-	hueTeal      = hue{22, 78, 99, 23}      // #164E63 — rule end caps
-	hueCyan      = hue{34, 211, 238, 51}    // #22D3EE — ▸ accents / URLs
-	hueDim       = hue{107, 114, 128, 243}  // #6B7280 — version / descriptions
-	hueGray      = hue{156, 163, 175, 247}  // #9CA3AF — tagline
-	hueWhite     = hue{244, 244, 245, 255}  // #F4F4F5 — link labels
-	hueYellow    = hue{250, 204, 21, 226}   // #FACC15 — star CTA
+	hueTeal      = hue{22, 78, 99, 23}     // #164E63 — rule end caps
+	hueCyan      = hue{34, 211, 238, 51}   // #22D3EE — ▸ accents / URLs
+	hueDim       = hue{107, 114, 128, 243} // #6B7280 — version / descriptions
+	hueGray      = hue{156, 163, 175, 247} // #9CA3AF — tagline
+	hueWhite     = hue{244, 244, 245, 255} // #F4F4F5 — link labels
+	hueYellow    = hue{250, 204, 21, 226}  // #FACC15 — star CTA
 )
 
 // printLogo renders the wings startup banner once, before log output begins:

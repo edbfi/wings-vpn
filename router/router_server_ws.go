@@ -88,7 +88,7 @@ func getServerWebsocket(c *gin.Context) {
 		// If the server is deleted we need to send a close message to the connected client
 		// so that they disconnect since there will be no more events sent along. Listen for
 		// the request context being closed to break this loop, otherwise this routine will
-		//be left hanging in the background.
+		// be left hanging in the background.
 		case <-s.Context().Done():
 			cancel()
 			break

@@ -127,10 +127,10 @@ type RemoteQueryConfiguration struct {
 	// be less likely to cause performance issues on the Panel.
 	BootServersPerPage int `default:"50" yaml:"boot_servers_per_page"`
 
-	//When using services like Cloudflare Access to manage access to
-	//a specific system via an external authentication system,
-	//it is possible to add special headers to bypass authentication.
-	//The mentioned headers can be appended to queries sent from Wings to the panel.
+	// When using services like Cloudflare Access to manage access to
+	// a specific system via an external authentication system,
+	// it is possible to add special headers to bypass authentication.
+	// The mentioned headers can be appended to queries sent from Wings to the panel.
 	CustomHeaders map[string]string `yaml:"custom_headers"`
 }
 
@@ -288,7 +288,6 @@ type Backups struct {
 	//
 	// Defaults to "best_speed" (level 1)
 	CompressionLevel string `default:"best_speed" yaml:"compression_level"`
-
 
 	// RestoreHostAllowlist allows backup restore downloads to connect to otherwise blocked
 	// private/internal destinations. Entries may be hostnames, IP addresses, or CIDR ranges.
@@ -709,7 +708,7 @@ func ConfigurePasswd() (err error) {
 		Debug("ensuring passwd file exists")
 	if err = os.WriteFile(filepath.Join(_config.System.User.Passwd.Directory, "passwd"),
 		[]byte(fmt.Sprintf("container:x:%d:%d::/home/container:/usr/sbin/nologin",
-			_config.System.User.Uid, _config.System.User.Gid)), 0644); err != nil {
+			_config.System.User.Uid, _config.System.User.Gid)), 0o644); err != nil {
 		return fmt.Errorf("could not write passwd file: %w", err)
 	}
 
@@ -717,7 +716,7 @@ func ConfigurePasswd() (err error) {
 		Debug("ensuring group file exists")
 	if err = os.WriteFile(filepath.Join(_config.System.User.Passwd.Directory, "group"),
 		[]byte(fmt.Sprintf("container:x:%d:container",
-			_config.System.User.Gid)), 0644); err != nil {
+			_config.System.User.Gid)), 0o644); err != nil {
 		return fmt.Errorf("could not write group file: %w", err)
 	}
 	return

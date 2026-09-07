@@ -230,7 +230,7 @@ out:
 				// Create install log directory if it doesn't exist
 				cfg := config.Get()
 				installLogDir := filepath.Join(cfg.System.LogDirectory, "install")
-				if err := os.MkdirAll(installLogDir, 0755); err != nil {
+				if err := os.MkdirAll(installLogDir, 0o755); err != nil {
 					// Don't fail transfer for install logs, just log and continue
 					trnsfr.Log().WithError(err).Warn("failed to create install log directory, skipping")
 					break
@@ -271,7 +271,7 @@ out:
 				// Create backup directory if it doesn't exist
 				cfg := config.Get()
 				backupDir := filepath.Join(cfg.System.BackupDirectory, trnsfr.Server.ID())
-				if err := os.MkdirAll(backupDir, 0755); err != nil {
+				if err := os.MkdirAll(backupDir, 0o755); err != nil {
 					middleware.CaptureAndAbort(c, fmt.Errorf("failed to create backup directory: %w", err))
 					return
 				}

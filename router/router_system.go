@@ -47,6 +47,7 @@ func getSystemInformation(c *gin.Context) {
 		Version:       i.Version,
 	})
 }
+
 func getDiagnostics(c *gin.Context) {
 	// Optional query params: ?include_endpoints=true&include_logs=true&log_lines=300
 

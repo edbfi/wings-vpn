@@ -27,7 +27,7 @@
             go_1_22
             gofumpt
             golangci-lint
-            gotools 
+            gotools
           ];
         };
 

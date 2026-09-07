@@ -235,7 +235,6 @@ func (s *Server) onConsoleOutput(data []byte) {
 		}
 	}
 
-
 	// If the command sent to the server is one that should stop the server we will need to
 	// set the server to be in a stopping state, otherwise crash detection will kick in and
 	// cause the server to unexpectedly restart on the user.
