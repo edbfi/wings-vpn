@@ -1,13 +1,4 @@
-name: Push
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
+name: Go platform validation
 jobs:
   build-and-test:
     name: Build and Test
@@ -15,101 +6,136 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04]
-        go: ["1.25.12", "1.26.5"]
-        goos: [linux]
-        goarch: [amd64, arm64]
-
+        os:
+        - ubuntu-24.04
+        go:
+        - 1.26.8
+        - 1.27.1
+        goos:
+        - linux
+        goarch:
+        - amd64
+        - arm64
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ matrix.go }}
-
-      - name: Code checkout
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: go mod download
-        env:
-          CGO_ENABLED: 0
-        run: |
-          go mod download
-
-      - name: Build
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
-          SRC_PATH: github.com/pelican/wings
-        run: |
-          go build -v -trimpath -ldflags="-s -w -X ${SRC_PATH}/system.Version=dev-${GITHUB_SHA:0:7}" -o dist/wings ${SRC_PATH}
-          go build -v -trimpath -ldflags="-X ${SRC_PATH}/system.Version=dev-${GITHUB_SHA:0:7}" -o dist/wings_debug ${SRC_PATH}
-          chmod 755 dist/*
-
-      - name: go test
-        if: ${{ matrix.goarch == 'amd64' }}
-        env:
-          CGO_ENABLED: 0
-        run: |
-          go test $(go list ./...)
-
-      - name: go test -race
-        if: ${{ matrix.goarch == 'amd64' }}
-        env:
-          CGO_ENABLED: 1
-        run: |
-          go test -race $(go list ./...)
-
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v7
-        if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && matrix.go == '1.25.12' }}
-        with:
-          name: wings_linux_${{ matrix.goarch }}
-          path: dist/wings
-
-      - name: Upload Debug Artifact
-        uses: actions/upload-artifact@v7
-        if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && matrix.go == '1.25.12' }}
-        with:
-          name: wings_linux_${{ matrix.goarch }}_debug
-          path: dist/wings_debug
-
+    - name: Setup Go
+      uses: actions/setup-go@v7.0.0
+      with:
+        go-version: ${{ matrix.go }}
+        cache: true
+    - name: Code checkout
+      uses: actions/checkout@v7.0.1
+      with:
+        persist-credentials: false
+    - name: go mod download
+      env:
+        CGO_ENABLED: 0
+      run: |
+        go mod download
+        go mod verify
+    - name: Build
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+        CGO_ENABLED: 0
+        SRC_PATH: github.com/pelican/wings
+      run: |
+        go build -mod=readonly -v -trimpath -ldflags="-s -w -X ${SRC_PATH}/system.Version=dev-${GITHUB_SHA:0:7}" -o dist/wings "${SRC_PATH}"
+        go build -mod=readonly -v -trimpath -ldflags="-X ${SRC_PATH}/system.Version=dev-${GITHUB_SHA:0:7}" -o dist/wings_debug "${SRC_PATH}"
+        chmod 755 dist/*
+    - name: Smoke built CLI
+      run: |
+        version_output=$(dist/wings version)
+        printf '%s\n' "$version_output"
+        grep -q '^wings vdev-' <<< "$version_output"
+      if: matrix.goarch == 'amd64'
+    - name: go test
+      if: ${{ matrix.goarch == 'amd64' }}
+      env:
+        CGO_ENABLED: 0
+      run: |
+        go test ./...
+    - name: go test -race
+      if: ${{ matrix.goarch == 'amd64' }}
+      env:
+        CGO_ENABLED: 1
+      run: |
+        go test -race ./...
+    - name: Upload Release Artifact
+      uses: actions/upload-artifact@v7.0.1
+      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && matrix.go == '1.26.8'
+        }}
+      with:
+        name: wings_linux_${{ matrix.goarch }}
+        path: dist/wings
+        if-no-files-found: error
+        retention-days: 7
+    - name: Upload Debug Artifact
+      uses: actions/upload-artifact@v7.0.1
+      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && matrix.go == '1.26.8'
+        }}
+      with:
+        name: wings_linux_${{ matrix.goarch }}_debug
+        path: dist/wings_debug
+        if-no-files-found: error
+        retention-days: 7
+    - name: Reject tracked-file mutation
+      run: git diff --exit-code HEAD
+    timeout-minutes: 40
+    env:
+      GOFLAGS: -mod=readonly
+      GOTOOLCHAIN: local
   test-macos:
     name: Test macOS
     runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
-        go: ["1.25.12", "1.26.5"]
-
+        go:
+        - 1.26.8
+        - 1.27.1
     steps:
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: ${{ matrix.go }}
-
-      - name: Code checkout
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: go mod download
-        env:
-          CGO_ENABLED: 0
-        run: |
-          go mod download
-
-      - name: Build
-        env:
-          CGO_ENABLED: 0
-          SRC_PATH: github.com/pelican/wings
-        run: |
-          go build -v -trimpath -ldflags="-s -w -X ${SRC_PATH}/system.Version=dev-${GITHUB_SHA:0:7}" -o dist/wings ${SRC_PATH}
-
-      - name: go test -race
-        env:
-          CGO_ENABLED: 1
-        run: |
-          go test -race $(go list ./...)
+    - name: Setup Go
+      uses: actions/setup-go@v7.0.0
+      with:
+        go-version: ${{ matrix.go }}
+        cache: true
+    - name: Code checkout
+      uses: actions/checkout@v7.0.1
+      with:
+        persist-credentials: false
+    - name: go mod download
+      env:
+        CGO_ENABLED: 0
+      run: |
+        go mod download
+        go mod verify
+    - name: Build
+      env:
+        CGO_ENABLED: 0
+        SRC_PATH: github.com/pelican/wings
+      run: |
+        go build -mod=readonly -v -trimpath -ldflags="-s -w -X ${SRC_PATH}/system.Version=dev-${GITHUB_SHA:0:7}" -o dist/wings "${SRC_PATH}"
+    - name: Smoke built CLI
+      run: |
+        version_output=$(dist/wings version)
+        printf '%s\n' "$version_output"
+        grep -q '^wings vdev-' <<< "$version_output"
+    - name: go test -race
+      env:
+        CGO_ENABLED: 1
+      run: |
+        go test -race ./...
+    - name: Reject tracked-file mutation
+      run: git diff --exit-code HEAD
+    timeout-minutes: 40
+    env:
+      GOFLAGS: -mod=readonly
+      GOTOOLCHAIN: local
+'on':
+  workflow_call: {}
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: push-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true

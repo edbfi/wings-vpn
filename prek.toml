@@ -35,13 +35,12 @@ hooks = [
 ]
 
 # Local hooks — Go quality gates.
-# NOTE: this fork's binary targets Linux; server/filesystem only compiles with GOOS=linux,
-# so build is pinned to GOOS=linux CGO_ENABLED=0 (matches CI) to work on macOS.
-# go vet is intentionally omitted: it is not gated by upstream CI and fails on pre-existing
-# issues in the legacy tree, which would block every commit.
+# Local tools are pinned separately from application dependencies; use Go 1.27.1.
+# CI keeps Linux builds and native macOS checks explicit.
 [[repos]]
 repo = "local"
 hooks = [
-  { id = "gofumpt", name = "gofumpt", entry = "gofumpt -w", language = "system", types = ["go"] },
+  { id = "gofumpt", name = "gofumpt", entry = "go tool -modfile=.github/tools/go.mod gofumpt -w", language = "system", types = ["go"] },
+  { id = "golangci-lint", name = "Go lint regression gate", entry = "python3 .github/scripts/lint.py", language = "system", types = ["go"], pass_filenames = false },
   { id = "go-build", name = "go build", entry = "env GOOS=linux CGO_ENABLED=0 go build ./...", language = "system", types = ["go"], pass_filenames = false },
 ]
