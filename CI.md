@@ -3,8 +3,8 @@
 Every pull request and default-branch push runs `ci`: hygiene/quality, Linux amd64
 and arm64 builds on Go 1.26.8 and 1.27.1, native macOS builds/race tests on both Go
 versions, and CodeQL. The shared dispatch guard and fail-closed aggregate require
-all expected jobs to succeed. No branch protections or rulesets are configured; automerge remains off.
-Manually review exact head/base, full diff, author/DCO, every expected job and
+all expected jobs to succeed. No branch protections or rulesets are configured; Renovate updates merge unattended only after every current-head job in `.github/merge-policy.json` succeeds.
+Other changes retain manual review of exact head/base, full diff, author/DCO, every expected job and
 relevant artifacts before merging through the maintainer ghmerge function. No path filter may bypass this workflow.
 
 Go 1.26 is now the minimum: `golang.org/x/crypto` 0.56.0 requires it and fixes the
@@ -62,8 +62,16 @@ comes from existing build flags, so the redundant source-writing release branch
 is removed. Container publication keeps the repository's own GHCR namespace and
 existing release/manual controls. Platform CI does not start Docker containers,
 configure VPNs, install games, contact NanoGPT, or exercise a live panel. These
-integration gaps and the lint backlog keep Go/container automerge disabled;
-Renovate still groups and proposes updates through the shared versioned preset.
+integration gaps and the lint backlog remain documented limitations. The shared
+v1.1.0 policy makes all dependency update types eligible, including Go, container
+and shared-policy updates, without dashboard approval. The checked merge action
+preserves genuine sign-offs and dispatches full CI for the exact merged commit.
+
+Platform checks use stable minimum/current lane names so a Go patch update does
+not invalidate required-check names or suppress binary artifacts. The minimum
+lane stays on Go 1.26 patches; the current lane may advance to new Go releases.
+All existing Linux builds, native macOS/race tests, lint and vulnerability gates
+remain required.
 
 The inherited Nix shell still pins a historical nixpkgs/Go 1.22 environment and is
 not a supported validation path; use the documented toolchain above. Updating and

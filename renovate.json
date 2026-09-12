@@ -1,33 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>edbfi/automation:default#v1.0.0"
+    "github>edbfi/automation//default.json#v1.1.0",
+    "github>edbfi/automation//automerge.json#v1.1.0"
   ],
   "packageRules": [
     {
-      "description": "Daemon, filesystem and VPN behavior needs integration review beyond unit and platform checks.",
-      "matchManagers": [
-        "gomod",
-        "dockerfile"
+      "description": "Keep the minimum compatibility lane on Go 1.26 patches; the current lane can advance to newer release lines.",
+      "matchFileNames": [
+        ".github/workflows/push.yaml"
       ],
-      "automerge": false
-    },
-    {
-      "description": "Keep both deliberately selected platform-test release lines current without dropping the minimum version.",
       "matchDatasources": [
         "golang-version"
       ],
       "matchCurrentVersion": "/^1\\.26\\./",
-      "allowedVersions": ">=1.26.0 <1.27.0",
-      "automerge": false
-    },
-    {
-      "matchDatasources": [
-        "golang-version"
-      ],
-      "matchCurrentVersion": "/^1\\.27\\./",
-      "allowedVersions": ">=1.27.0 <1.28.0",
-      "automerge": false
+      "allowedVersions": ">=1.26.0 <1.27.0"
     }
   ],
   "customManagers": [
@@ -37,10 +24,11 @@
         "/^\\.github/workflows/push\\.yaml$/"
       ],
       "matchStrings": [
-        "- (?<currentValue>1\\.\\d+\\.\\d+)\\n"
+        "go: (?<currentValue>1\\.\\d+\\.\\d+)\\n"
       ],
       "datasourceTemplate": "golang-version",
       "depNameTemplate": "go"
     }
-  ]
+  ],
+  "forkProcessing": "enabled"
 }
