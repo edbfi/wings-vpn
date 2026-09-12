@@ -3,8 +3,9 @@
 Every pull request and default-branch push runs `ci`: hygiene/quality, Linux amd64
 and arm64 builds on Go 1.26.8 and 1.27.1, native macOS builds/race tests on both Go
 versions, and CodeQL. The shared dispatch guard and fail-closed aggregate require
-all expected jobs to succeed. Require `ci / required`, strict up-to-date branches
-and no bypasses. No path filter may bypass this workflow.
+all expected jobs to succeed. No branch protections or rulesets are configured; automerge remains off.
+Manually review exact head/base, full diff, author/DCO, every expected job and
+relevant artifacts before merging through the maintainer ghmerge function. No path filter may bypass this workflow.
 
 Go 1.26 is now the minimum: `golang.org/x/crypto` 0.56.0 requires it and fixes the
 reported SSH deadlocks/source-address validation issues. Its compatible x/text
@@ -20,6 +21,11 @@ Local commands:
   Python compilation/gate tests, golangci-lint and reachable-vulnerability checks.
 - `go test -race ./...`: existing filesystem, backup, HTTP, server, SFTP and
   concurrency suites. The Linux build also runs tests with CGO disabled.
+
+The lint regression baseline is measured on Linux; run the quality script there.
+Native macOS build/race tests are separate. Direct macOS lint currently also
+reports SA1019 for the inherited F_GETPATH syscall in internal/ufs/fs_darwin.go;
+that platform-specific finding is not suppressed or added to the Linux baseline.
 
 The complete standard golangci-lint set is enabled. Its initial 203 diagnostics
 are recorded by exact path, linter, message, source text and multiplicity in
@@ -63,3 +69,11 @@ The inherited Nix shell still pins a historical nixpkgs/Go 1.22 environment and 
 not a supported validation path; use the documented toolchain above. Updating and
 validating that optional shell is a remaining tooling gap. The container builder
 uses Go 1.27.1 to match the current supported CI lane.
+
+## Publication and upstream sync
+
+Release, container publication and upstream sync remain disabled during migration.
+Their stored workflows and credentials are preserved for separate validation.
+The self-update command defaults to upstream Pelican; do not use it to update this
+fork, because an upstream binary does not contain its network-mode customization.
+No fork release has been published.

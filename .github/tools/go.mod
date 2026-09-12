@@ -1,4 +1,4 @@
-module github.com/engels74/wings-vpn/ci-tools
+module github.com/edbfi/wings-vpn/ci-tools
 
 go 1.27.1
 
