@@ -1,16 +1,19 @@
 name: Go platform validation
 jobs:
   build-and-test:
-    name: Build and Test
+    name: Build and Test (${{ matrix.channel }}, ${{ matrix.goos }}, ${{ matrix.goarch }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os:
         - ubuntu-24.04
-        go:
-        - 1.26.8
-        - 1.27.1
+        channel: [minimum, current]
+        include:
+        - channel: minimum
+          go: 1.26.8
+        - channel: current
+          go: 1.27.1
         goos:
         - linux
         goarch:
@@ -62,7 +65,7 @@ jobs:
         go test -race ./...
     - name: Upload Release Artifact
       uses: actions/upload-artifact@v7.0.1
-      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && matrix.go == '1.26.8'
+      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && matrix.channel == 'minimum'
         }}
       with:
         name: wings_linux_${{ matrix.goarch }}
@@ -71,7 +74,7 @@ jobs:
         retention-days: 7
     - name: Upload Debug Artifact
       uses: actions/upload-artifact@v7.0.1
-      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && matrix.go == '1.26.8'
+      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && matrix.channel == 'minimum'
         }}
       with:
         name: wings_linux_${{ matrix.goarch }}_debug
@@ -85,14 +88,17 @@ jobs:
       GOFLAGS: -mod=readonly
       GOTOOLCHAIN: local
   test-macos:
-    name: Test macOS
+    name: Test macOS (${{ matrix.channel }})
     runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
-        go:
-        - 1.26.8
-        - 1.27.1
+        channel: [minimum, current]
+        include:
+        - channel: minimum
+          go: 1.26.8
+        - channel: current
+          go: 1.27.1
     steps:
     - name: Setup Go
       uses: actions/setup-go@v7.0.0

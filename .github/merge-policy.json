@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "enabled": true,
+  "ci_workflow": "ci.yml",
+  "required_checks": [
+    "guard",
+    "quality",
+    "platforms / Build and Test (minimum, linux, amd64)",
+    "platforms / Build and Test (minimum, linux, arm64)",
+    "platforms / Build and Test (current, linux, amd64)",
+    "platforms / Build and Test (current, linux, arm64)",
+    "platforms / Test macOS (minimum)",
+    "platforms / Test macOS (current)",
+    "codeql / Analyze (go)",
+    "ci / required"
+  ],
+  "optional_checks": [],
+  "check_app_id": 15368,
+  "renovate": {
+    "login": "renovate[bot]",
+    "id": 29139614
+  },
+  "renovate_comment": "/merge-when-green",
+  "minimum_approvals": 0,
+  "deploy_workflows": []
+}
