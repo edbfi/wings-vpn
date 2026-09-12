@@ -120,6 +120,7 @@ func (c DockerConfiguration) ContainerLogConfig() container.LogConfig {
 		Config: c.LogConfig.Config,
 	}
 }
+
 // RegistryCredentialsForImage returns registry credentials for an image only
 // when the configured registry and image reference share the same registry
 // identity.

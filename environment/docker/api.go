@@ -82,7 +82,7 @@ func (e *Environment) ContainerInspect(ctx context.Context) (container.InspectRe
 		return st, errdefs.FromStatusCode(err, res.StatusCode)
 	}
 	defer res.Body.Close()
-	
+
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return st, errors.Wrap(err, "failed to read response body from Docker")

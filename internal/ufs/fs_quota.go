@@ -4,7 +4,7 @@
 package ufs
 
 import (
-	"math"	
+	"math"
 	"sync/atomic"
 )
 

@@ -320,20 +320,20 @@ func (e *Environment) Create() error {
 		UsernsMode:  container.UsernsMode(cfg.Docker.UsernsMode),
 	}
 
-	var netConf *network.NetworkingConfig = nil //In case when no networking config is needed set nil
-	var serverNetConfig = config.Get().Docker.Network
+	var netConf *network.NetworkingConfig = nil // In case when no networking config is needed set nil
+	serverNetConfig := config.Get().Docker.Network
 	// Skip macvlan endpoint config under container network mode: the container borrows the
 	// target container's network namespace, so attaching a macvlan endpoint would conflict.
-	if !cfg.Docker.Network.IsContainerNetworkMode() && "macvlan" == serverNetConfig.Driver { //Generate networking config for macvlan driver
-		var defaultMapping = e.Config().Allocations().DefaultMapping
+	if !cfg.Docker.Network.IsContainerNetworkMode() && "macvlan" == serverNetConfig.Driver { // Generate networking config for macvlan driver
+		defaultMapping := e.Config().Allocations().DefaultMapping
 		e.log().Debug("Set macvlan " + serverNetConfig.Name + " IP to " + defaultMapping.Ip)
 		netConf = &network.NetworkingConfig{
 			EndpointsConfig: map[string]*network.EndpointSettings{
-				serverNetConfig.Name: { //Get network name from wings config
+				serverNetConfig.Name: { // Get network name from wings config
 					IPAMConfig: &network.EndpointIPAMConfig{
 						IPv4Address: defaultMapping.Ip,
 					},
-					IPAddress: defaultMapping.Ip, //Use default mapping ip address (wings support only one network per server)
+					IPAddress: defaultMapping.Ip, // Use default mapping ip address (wings support only one network per server)
 					Gateway:   serverNetConfig.Interfaces.V4.Gateway,
 				},
 			},

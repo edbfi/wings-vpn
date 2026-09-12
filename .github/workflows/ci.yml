@@ -1,0 +1,83 @@
+name: ci
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: edbfi/automation/actions/dispatch-guard@v1.0.0
+        with:
+          token: ${{ github.token }}
+          pr-number: ${{ inputs.pr-number }}
+          expected-head-sha: ${{ inputs.expected-head-sha }}
+  quality:
+    needs: guard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version: 1.27.1
+          cache: true
+          cache-dependency-path: '**/go.sum'
+      - uses: j178/prek-action@v3.0.0
+        with:
+        # renovate: datasource=github-releases depName=j178/prek
+          prek-version: 0.5.2
+        env:
+          SKIP: no-commit-to-branch,gofumpt,go-build,golangci-lint
+      - run: bash .github/scripts/quality.sh
+      - run: git diff --exit-code HEAD
+  platforms:
+    needs: guard
+    uses: ./.github/workflows/push.yaml
+  codeql:
+    needs: guard
+    uses: ./.github/workflows/codeql.yaml
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+  required:
+    name: ci / required
+    if: always()
+    needs:
+      - guard
+      - quality
+      - platforms
+      - codeql
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: edbfi/automation/actions/dispatch-guard@v1.0.0
+        with:
+          token: ${{ github.token }}
+          pr-number: ${{ inputs.pr-number }}
+          expected-head-sha: ${{ inputs.expected-head-sha }}
+      - uses: edbfi/automation/actions/gate@v1.0.0
+        with:
+          needs: ${{ toJSON(needs) }}
+          required: guard quality platforms codeql
+'on':
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: PR number for a repair dispatch
+        type: string
+        default: ''
+      expected-head-sha:
+        description: Exact repaired PR commit
+        type: string
+        default: ''

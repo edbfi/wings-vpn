@@ -26,8 +26,10 @@ var wingsBootTime = time.Now()
 // is booted this listing is fetched from the panel and the Websocket is dynamically updated.
 //
 // deprecated: prefer use of userDenylist
-var denylist sync.Map
-var userDenylist sync.Map
+var (
+	denylist     sync.Map
+	userDenylist sync.Map
+)
 
 // Adds a JTI to the denylist by marking any JWTs generated before the current time as
 // being invalid if they use the same JTI.

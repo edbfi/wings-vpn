@@ -1,10 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"os"
 	"runtime"
-
-	"fmt"
 	"strings"
 
 	"github.com/gammazero/workerpool"

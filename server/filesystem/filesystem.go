@@ -379,7 +379,7 @@ func (fs *Filesystem) Copy(p string) error {
 		return err
 	}
 	defer dst.Close()
-	
+
 	// Do not use CopyBuffer here, it is wasteful as the file implements
 	// io.ReaderFrom, which causes it to not use the buffer anyways.
 	n, err := io.Copy(dst, io.LimitReader(source, currentSize))
@@ -395,7 +395,6 @@ func (fs *Filesystem) Copy(p string) error {
 }
 
 func (fs *Filesystem) Ext(n string) string {
-
 	extension := filepath.Ext(n)
 	baseName := strings.TrimSuffix(n, extension)
 

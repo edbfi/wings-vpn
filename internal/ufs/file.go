@@ -170,8 +170,8 @@ const (
 	// error will be returned.
 	O_DIRECTORY = unix.O_DIRECTORY
 	// O_NOFOLLOW opens the exact path given without following symlinks.
-	O_NOFOLLOW  = unix.O_NOFOLLOW
-	O_CLOEXEC = unix.O_CLOEXEC
+	O_NOFOLLOW = unix.O_NOFOLLOW
+	O_CLOEXEC  = unix.O_CLOEXEC
 )
 
 const (
