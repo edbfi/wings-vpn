@@ -62,7 +62,7 @@ jobs:
         go test -race ./...
     - name: Upload Release Artifact
       uses: actions/upload-artifact@v7.0.1
-      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && matrix.go == '1.26.8'
+      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && matrix.go == '1.26.8'
         }}
       with:
         name: wings_linux_${{ matrix.goarch }}
@@ -71,7 +71,7 @@ jobs:
         retention-days: 7
     - name: Upload Debug Artifact
       uses: actions/upload-artifact@v7.0.1
-      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request') && matrix.go == '1.26.8'
+      if: ${{ (github.ref == 'refs/heads/main' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch') && matrix.go == '1.26.8'
         }}
       with:
         name: wings_linux_${{ matrix.goarch }}_debug
