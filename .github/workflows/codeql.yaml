@@ -33,8 +33,6 @@ jobs:
     timeout-minutes: 40
 'on':
   workflow_call: {}
-  schedule:
-  - cron: 0 9 * * 4
 permissions:
   contents: read
 concurrency:
