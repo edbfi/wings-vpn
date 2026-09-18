@@ -22,7 +22,7 @@ import (
 	"github.com/apex/log"
 	"github.com/creasty/defaults"
 	"github.com/gbrlsnchs/jwt/v3"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 
 	"github.com/pelican/wings/system"
 )
@@ -503,10 +503,16 @@ func WriteToDisk(c *Configuration) error {
 	if c.path == "" {
 		return errors.New("cannot write configuration, no path defined in struct")
 	}
-	b, err := yaml.Marshal(&ccopy)
-	if err != nil {
+	var buffer bytes.Buffer
+	encoder := yaml.NewEncoder(&buffer)
+	encoder.SetIndent(2)
+	if err := encoder.Encode(&ccopy); err != nil {
 		return err
 	}
+	if err := encoder.Close(); err != nil {
+		return err
+	}
+	b := buffer.Bytes()
 	if err := os.WriteFile(c.path, b, 0o600); err != nil {
 		return err
 	}
