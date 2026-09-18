@@ -11,6 +11,7 @@ require (
 	github.com/beevik/etree v1.6.0
 	github.com/buger/jsonparser v1.2.0
 	github.com/cenkalti/backoff/v4 v4.3.0
+	github.com/cenkalti/backoff/v7 v7.0.0
 	github.com/creasty/defaults v1.8.0
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-connections v0.7.0
