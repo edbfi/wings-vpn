@@ -14,7 +14,7 @@ import (
 
 	"emperror.dev/errors"
 	"github.com/apex/log"
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v7"
 	"github.com/goccy/go-json"
 
 	"github.com/pelican/wings/system"
@@ -154,25 +154,23 @@ func (c *client) requestOnce(ctx context.Context, method, path string, body io.R
 // created. Errors returned will be of the RequestError type if there was some
 // type of response from the API that can be parsed.
 func (c *client) request(ctx context.Context, method, path string, body *bytes.Buffer, opts ...func(r *http.Request)) (*Response, error) {
-	var res *Response
-	err := backoff.Retry(func() error {
+	res, err := backoff.Retry(ctx, func() (*Response, error) {
 		var b bytes.Buffer
 		if body != nil {
 			// We have to create a copy of the body, otherwise attempting this request again will
 			// send no data if there was initially a body since the "requestOnce" method will read
 			// the whole buffer, thus leaving it empty at the end.
 			if _, err := b.Write(body.Bytes()); err != nil {
-				return backoff.Permanent(errors.Wrap(err, "http: failed to copy body buffer"))
+				return nil, backoff.Permanent(errors.Wrap(err, "http: failed to copy body buffer"))
 			}
 		}
 		r, err := c.requestOnce(ctx, method, path, &b, opts...)
 		if err != nil {
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return backoff.Permanent(err)
+				return nil, backoff.Permanent(err)
 			}
-			return errors.WrapIf(err, "http: request creation failed")
+			return nil, errors.WrapIf(err, "http: request creation failed")
 		}
-		res = r
 		if r.HasError() {
 			// Close the request body after returning the error to free up resources.
 			defer r.Body.Close()
@@ -180,15 +178,18 @@ func (c *client) request(ctx context.Context, method, path string, body *bytes.B
 			// level error which indicates a client mistake. Only retry when the error
 			// is due to a server issue (5XX error).
 			if r.StatusCode >= 400 && r.StatusCode < 500 {
-				return backoff.Permanent(r.Error())
+				return nil, backoff.Permanent(r.Error())
 			}
-			return r.Error()
+			return nil, r.Error()
 		}
-		return nil
-	}, c.backoff(ctx))
+		return r, nil
+	}, c.backoff()...)
 	if err != nil {
-		if v, ok := err.(*backoff.PermanentError); ok {
-			return nil, v.Unwrap()
+		if retryErr := backoff.AsRetryError(err); retryErr != nil {
+			if errors.Is(retryErr.Cause, context.Canceled) || errors.Is(retryErr.Cause, context.DeadlineExceeded) {
+				return nil, retryErr.Cause
+			}
+			return nil, retryErr.LastErr
 		}
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (c *client) request(ctx context.Context, method, path string, body *bytes.B
 // returned. You can tweak these values as needed to get the effect you desire.
 //
 // If maxAttempts is a value greater than 0 the backoff will be capped at a total
-// number of executions, or the MaxElapsedTime, whichever comes first.
+// number of retries after the first call, or the elapsed-time budget, whichever comes first.
 //
 // call(): 0s
 // call(): 552.330144ms
@@ -218,14 +219,15 @@ func (c *client) request(ctx context.Context, method, path string, body *bytes.B
 // call(): 14.593421816s
 // call(): 20.202045293s
 // call(): 27.36567952s <-- Stops here as MaxElapsedTime is 30 seconds
-func (c *client) backoff(ctx context.Context) backoff.BackOffContext {
+func (c *client) backoff() []backoff.RetryOption {
 	b := backoff.NewExponentialBackOff()
 	b.MaxInterval = time.Second * 12
-	b.MaxElapsedTime = time.Second * 30
+	opts := []backoff.RetryOption{backoff.WithBackOff(b), backoff.WithMaxElapsedTime(30 * time.Second)}
 	if c.maxAttempts > 0 {
-		return backoff.WithContext(backoff.WithMaxRetries(b, uint64(c.maxAttempts)), ctx)
+		// Preserve the existing limit: maxAttempts counts retries after the first call.
+		opts = append(opts, backoff.WithMaxTries(uint(c.maxAttempts)+1))
 	}
-	return backoff.WithContext(b, ctx)
+	return opts
 }
 
 // Response is a custom response type that allows for commonly used error

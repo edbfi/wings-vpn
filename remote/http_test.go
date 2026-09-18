@@ -1,9 +1,12 @@
 package remote
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -91,4 +94,55 @@ func TestPost(t *testing.T) {
 	r, err := c.Post(context.Background(), "/test", test)
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
+}
+
+func TestRequestPermanentFailureDoesNotRetry(t *testing.T) {
+	var attempts atomic.Int32
+	c, server := createTestClient(func(w http.ResponseWriter, _ *http.Request) {
+		attempts.Add(1)
+		w.WriteHeader(http.StatusUnauthorized)
+	})
+	defer server.Close()
+	response, err := c.request(context.Background(), http.MethodGet, "/", nil)
+	assert.Nil(t, response)
+	assert.Equal(t, int32(1), attempts.Load())
+	requestErr := AsRequestError(err)
+	if assert.NotNil(t, requestErr) {
+		assert.Equal(t, http.StatusUnauthorized, requestErr.StatusCode())
+	}
+}
+
+func TestRequestCancellationStopsRetryWait(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var attempts atomic.Int32
+	c, server := createTestClient(func(w http.ResponseWriter, _ *http.Request) {
+		attempts.Add(1)
+		w.WriteHeader(http.StatusInternalServerError)
+		cancel()
+	})
+	defer server.Close()
+	response, err := c.request(ctx, http.MethodGet, "/", nil)
+	assert.Nil(t, response)
+	assert.ErrorIs(t, err, context.Canceled)
+	assert.Equal(t, int32(1), attempts.Load())
+}
+
+func TestRequestRetryReplaysBody(t *testing.T) {
+	var attempts atomic.Int32
+	c, server := createTestClient(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		assert.NoError(t, err)
+		assert.Equal(t, "payload", string(body))
+		if attempts.Add(1) == 1 {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	})
+	defer server.Close()
+	response, err := c.request(context.Background(), http.MethodPost, "/", bytes.NewBufferString("payload"))
+	assert.NoError(t, err)
+	if assert.NotNil(t, response) {
+		assert.NoError(t, response.Body.Close())
+	}
+	assert.Equal(t, int32(2), attempts.Load())
 }
