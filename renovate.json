@@ -15,18 +15,6 @@
       ],
       "matchCurrentVersion": "/^1\\.26\\./",
       "allowedVersions": ">=1.26.0 <1.27.0"
-    },
-    {
-      "description": "Keep the dedicated CI tool module checksums complete when Renovate updates its Go tools.",
-      "matchManagers": [
-        "gomod"
-      ],
-      "matchFileNames": [
-        ".github/tools/go.mod"
-      ],
-      "postUpdateOptions": [
-        "gomodTidy"
-      ]
     }
   ],
   "customManagers": [
@@ -42,5 +30,8 @@
       "depNameTemplate": "go"
     }
   ],
-  "forkProcessing": "enabled"
+  "forkProcessing": "enabled",
+  "postUpdateOptions": [
+    "gomodTidy"
+  ]
 }
