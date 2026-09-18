@@ -12,7 +12,7 @@ env:
   TARGET_BRANCH: ${{ github.event.repository.default_branch }}
 jobs:
   sync:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     env:
       NANOGPT_MODEL: ${{ secrets.NANOGPT_MODEL || 'moonshotai/kimi-k2-0905' }}
     steps:
