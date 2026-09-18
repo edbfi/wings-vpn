@@ -16,10 +16,14 @@ import (
 // the F_GETPATH fcntl command on macOS.
 func fdPath(fd int) (string, error) {
 	buf := make([]byte, unix.PathMax)
-	_, _, errno := unix.Syscall(unix.SYS_FCNTL, uintptr(fd), uintptr(unix.F_GETPATH), uintptr(unsafe.Pointer(&buf[0])))
-	runtime.KeepAlive(buf)
-	if errno != 0 {
-		return "", errno
+	// FcntlInt uses libSystem on Darwin. Pin the buffer while its address is
+	// passed as an integer so the wrapper cannot outlive or move its storage.
+	var pinned runtime.Pinner
+	pinned.Pin(&buf[0])
+	defer pinned.Unpin()
+	_, err := unix.FcntlInt(uintptr(fd), unix.F_GETPATH, int(uintptr(unsafe.Pointer(&buf[0]))))
+	if err != nil {
+		return "", err
 	}
 	n := bytes.IndexByte(buf, 0)
 	if n < 0 {

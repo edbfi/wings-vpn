@@ -1,8 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>edbfi/automation//default.json#v1.1.0",
-    "github>edbfi/automation//automerge.json#v1.1.0"
+    "github>edbfi/automation//default.json#v2.0.0",
+    "github>edbfi/automation//automerge.json#v2.0.0"
   ],
   "packageRules": [
     {
@@ -15,6 +15,18 @@
       ],
       "matchCurrentVersion": "/^1\\.26\\./",
       "allowedVersions": ">=1.26.0 <1.27.0"
+    },
+    {
+      "description": "Keep the dedicated CI tool module checksums complete when Renovate updates its Go tools.",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchFileNames": [
+        ".github/tools/go.mod"
+      ],
+      "postUpdateOptions": [
+        "gomodTidy"
+      ]
     }
   ],
   "customManagers": [
