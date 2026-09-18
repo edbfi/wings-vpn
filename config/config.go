@@ -503,8 +503,8 @@ func WriteToDisk(c *Configuration) error {
 	if c.path == "" {
 		return errors.New("cannot write configuration, no path defined in struct")
 	}
-	var b bytes.Buffer
-	encoder := yaml.NewEncoder(&b)
+	var buffer bytes.Buffer
+	encoder := yaml.NewEncoder(&buffer)
 	encoder.SetIndent(2)
 	if err := encoder.Encode(&ccopy); err != nil {
 		return err
@@ -512,7 +512,8 @@ func WriteToDisk(c *Configuration) error {
 	if err := encoder.Close(); err != nil {
 		return err
 	}
-	if err := os.WriteFile(c.path, b.Bytes(), 0o600); err != nil {
+	b := buffer.Bytes()
+	if err := os.WriteFile(c.path, b, 0o600); err != nil {
 		return err
 	}
 	return nil
