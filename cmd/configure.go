@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/charmbracelet/huh"
+	"charm.land/huh/v2"
 	"github.com/goccy/go-json"
 	"github.com/pelican/wings/config"
 	"github.com/spf13/cobra"

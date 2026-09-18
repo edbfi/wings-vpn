@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"charm.land/huh/v2"
 	"github.com/apex/log"
-	"github.com/charmbracelet/huh"
 	"github.com/goccy/go-json"
 	"github.com/spf13/cobra"
 
@@ -101,7 +101,9 @@ func diagnosticsCmdRun(*cobra.Command, []string) {
 
 	if diagnosticsArgs.ReviewBeforeUpload {
 		upload := false
-		huh.NewConfirm().Title("Upload to " + diagnosticsArgs.HastebinURL + "?").Value(&upload).Run()
+		if err := huh.NewConfirm().Title("Upload to " + diagnosticsArgs.HastebinURL + "?").Value(&upload).Run(); err != nil {
+			return
+		}
 		if !upload {
 			return
 		}
