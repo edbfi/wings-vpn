@@ -89,7 +89,7 @@ jobs:
       GOTOOLCHAIN: local
   test-macos:
     name: Test macOS (${{ matrix.channel }})
-    runs-on: macos-15
+    runs-on: macos-26
     strategy:
       fail-fast: false
       matrix:
