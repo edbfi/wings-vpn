@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/cenkalti/backoff/v4"
+	"github.com/cenkalti/backoff/v7"
 	"github.com/juju/ratelimit"
 	"github.com/mholt/archives"
 
@@ -187,14 +187,11 @@ func newS3FileUploader(file io.ReadCloser) *s3FileUploader {
 	}
 }
 
-// backoff returns a new expoential backoff implementation using a context that
-// will also stop the backoff if it is canceled.
-func (fu *s3FileUploader) backoff(ctx context.Context) backoff.BackOffContext {
+// backoff preserves the exponential schedule and one-minute retry budget.
+func (fu *s3FileUploader) backoff() []backoff.RetryOption {
 	b := backoff.NewExponentialBackOff()
 	b.Multiplier = 2
-	b.MaxElapsedTime = time.Minute
-
-	return backoff.WithContext(b, ctx)
+	return []backoff.RetryOption{backoff.WithBackOff(b), backoff.WithMaxElapsedTime(time.Minute)}
 }
 
 // uploadPart attempts to upload a given S3 file part to the S3 system. If a
@@ -215,16 +212,15 @@ func (fu *s3FileUploader) uploadPart(ctx context.Context, part string, size int6
 	// Limit the reader to the size of the part.
 	r.Body = Reader{Reader: io.LimitReader(fu.ReadCloser, size)}
 
-	var etag string
-	err = backoff.Retry(func() error {
+	etag, err := backoff.Retry(ctx, func() (string, error) {
 		res, err := fu.client.Do(r)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-				return backoff.Permanent(err)
+				return "", backoff.Permanent(err)
 			}
 			// Don't use a permanent error here, if there is a temporary resolution error with
 			// the URL due to DNS issues we want to keep re-trying.
-			return errors.Wrap(err, "backup: S3 HTTP request failed")
+			return "", errors.Wrap(err, "backup: S3 HTTP request failed")
 		}
 		_ = res.Body.Close()
 
@@ -234,20 +230,21 @@ func (fu *s3FileUploader) uploadPart(ctx context.Context, part string, size int6
 			// the S3 endpoint. Any 4xx error should be treated as an error that a retry
 			// would not fix.
 			if res.StatusCode >= http.StatusInternalServerError {
-				return err
+				return "", err
 			}
-			return backoff.Permanent(err)
+			return "", backoff.Permanent(err)
 		}
 
 		// Get the ETag from the uploaded part, this should be sent with the
 		// CompleteMultipartUpload request.
-		etag = res.Header.Get("ETag")
-
-		return nil
-	}, fu.backoff(ctx))
+		return res.Header.Get("ETag"), nil
+	}, fu.backoff()...)
 	if err != nil {
-		if v, ok := err.(*backoff.PermanentError); ok {
-			return "", v.Unwrap()
+		if retryErr := backoff.AsRetryError(err); retryErr != nil {
+			if errors.Is(retryErr.Cause, context.Canceled) || errors.Is(retryErr.Cause, context.DeadlineExceeded) {
+				return "", retryErr.Cause
+			}
+			return "", retryErr.LastErr
 		}
 		return "", err
 	}
