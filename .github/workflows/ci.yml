@@ -47,6 +47,21 @@ jobs:
       contents: read
       actions: read
       security-events: write
+  service:
+    needs: guard
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version: 1.27.1
+          cache: true
+      - run: go build -mod=readonly -o dist/wings-service .
+      - run: python3 .github/scripts/service-smoke.py dist/wings-service
+      - run: git diff --exit-code HEAD
   required:
     name: ci / required
     if: always()
@@ -55,6 +70,7 @@ jobs:
       - quality
       - platforms
       - codeql
+      - service
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
@@ -67,7 +83,7 @@ jobs:
       - uses: edbfi/automation/actions/gate@v3.0.1
         with:
           needs: ${{ toJSON(needs) }}
-          required: guard quality platforms codeql
+          required: guard quality platforms codeql service
 'on':
   pull_request:
   push:

@@ -97,18 +97,28 @@ The self-update command defaults to upstream Pelican; do not use it to update th
 fork, because an upstream binary does not contain its network-mode customization.
 No fork release has been published.
 
-## Service startup follow-up
+## Service startup fixture
 
-The executable version smoke proves real CLI execution, not daemon readiness.
-A required service fixture must run on an isolated Linux runner with a real Docker
-daemon and a disposable network; use temporary data/log/archive/backup paths, a
-dedicated system user, isolated SFTP/API ports and disabled host log rotation.
-Provide a loopback panel fixture implementing boot-server pagination and state
-reset, then launch the actual built Wings executable. Require authenticated
-`/api/system` JSON and the empty server listing, reject unauthenticated requests,
-and prove SFTP readiness. Capture daemon logs and clean up the process group,
-network, user and temporary state on failure and cancellation. VPN/container game
-execution needs separate bounded fixtures; this migration does not claim it.
-The local macOS validation environment does not supply these privileged Linux
-prerequisites. Existing CLI, filesystem, SFTP, HTTP, race and CodeQL gates remain
-mandatory until this integration fixture is implemented and proven on its runner.
+The required `service` job builds and launches the real Wings executable on
+Ubuntu 26.04 amd64 with the runner's real Docker daemon. A loopback-only panel
+fixture serves the boot inventory and state-reset endpoints and checks generated
+credentials. The test requires authenticated system metadata, the empty server
+listing, rejection of unauthenticated requests, an SSH/SFTP banner and an observed
+panel reset. A second startup with malformed panel JSON must exit nonzero for the
+expected configuration-load error before reaching readiness.
+
+Each run owns a unique internal Docker network, temporary state/config/log paths,
+ephemeral API/SFTP ports and a process group. It uses the existing rootless-user
+configuration to avoid system account changes, disables host log rotation and
+removes all temporary resources on success, failure and handled cancellation.
+Tokens are generated locally, checked against daemon logs and redacted from
+failure output. No log/config artifacts are uploaded. Hard runner termination
+relies on GitHub disposing of the runner.
+
+Run `go build -mod=readonly -o dist/wings-service .` followed by
+`python3 .github/scripts/service-smoke.py dist/wings-service` on a disposable Linux
+machine with Docker access. There is no skip path when prerequisites are missing.
+This proves daemon startup and real Docker connectivity with a simulated panel;
+game-container launch, VPN routing, privileged user creation and full authenticated
+SFTP transfers remain separate coverage. Existing CLI/native/race/CodeQL checks
+remain mandatory. The aggregate directly requires the service job.
