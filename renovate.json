@@ -14,12 +14,6 @@
       ],
       "matchCurrentVersion": "/^1\\.26\\./",
       "allowedVersions": ">=1.26.0 <1.27.0"
-    },
-    {
-      "matchPackageNames": [
-        "*"
-      ],
-      "automerge": false
     }
   ],
   "customManagers": [
@@ -39,7 +33,9 @@
   "postUpdateOptions": [
     "gomodTidy"
   ],
-  "automerge": false,
+  "automerge": true,
   "platformAutomerge": false,
-  "ignoreTests": false
+  "ignoreTests": false,
+  "automergeStrategy": "rebase",
+  "automergeType": "pr"
 }
