@@ -1,8 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>edbfi/automation//default.json#v2.0.0",
-    "github>edbfi/automation//automerge.json#v2.0.0"
+    "github>edbfi/automation//default.json#v3.0.1"
   ],
   "packageRules": [
     {
@@ -15,6 +14,12 @@
       ],
       "matchCurrentVersion": "/^1\\.26\\./",
       "allowedVersions": ">=1.26.0 <1.27.0"
+    },
+    {
+      "matchPackageNames": [
+        "*"
+      ],
+      "automerge": false
     }
   ],
   "customManagers": [
@@ -33,5 +38,8 @@
   "forkProcessing": "enabled",
   "postUpdateOptions": [
     "gomodTidy"
-  ]
+  ],
+  "automerge": false,
+  "platformAutomerge": false,
+  "ignoreTests": false
 }
