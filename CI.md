@@ -3,9 +3,23 @@
 Every pull request and default-branch push runs `ci`: hygiene/quality, Linux amd64
 and arm64 builds on Go 1.26.8 and 1.27.1, native macOS builds/race tests on both Go
 versions, and CodeQL. The shared dispatch guard and fail-closed aggregate require
-all expected jobs to succeed. No branch protections or rulesets are configured; Renovate updates merge unattended only after every current-head job in `.github/merge-policy.json` succeeds.
-Other changes retain manual review of exact head/base, full diff, author/DCO, every expected job and
-relevant artifacts before merging through the maintainer ghmerge function. No path filter may bypass this workflow.
+all expected jobs to succeed. No path filter may bypass this workflow.
+
+Shared actions, workflows and presets use immutable `v3.0.1` references.
+Renovate is the sole ongoing dependency merge owner. Direct automerge remains
+explicitly disabled, including matching package rules, until the hosted rollout
+proves native Renovate operation behind complete required CI. The legacy Actions
+merger and its comment commands are retired.
+
+The separate PR policy workflow verifies Conventional Commit titles, genuine
+matching author sign-offs, Renovate provenance, holds, outstanding review requests
+and unresolved changes requests. Require its actual emitted policy context alongside
+all existing application/content checks, pinned to GitHub Actions, with strict
+up-to-date branch protection. Preserve stronger review requirements. Explicit CI
+dispatches do not substitute for a missing metadata policy result. Review exact
+head/base, full diffs and all required results before a bootstrap merge, then
+verify resulting default-branch CI. Repository-specific updater ownership and
+manual publication or delivery controls remain unchanged.
 
 Go 1.26 is now the minimum: `golang.org/x/crypto` 0.56.0 requires it and fixes the
 reported SSH deadlocks/source-address validation issues. Its compatible x/text
@@ -62,11 +76,7 @@ comes from existing build flags, so the redundant source-writing release branch
 is removed. Container publication keeps the repository's own GHCR namespace and
 existing release/manual controls. Platform CI does not start Docker containers,
 configure VPNs, install games, contact NanoGPT, or exercise a live panel. These
-integration gaps and the lint backlog remain documented limitations. The shared
-v1.1.0 policy makes all dependency update types eligible, including Go, container
-and shared-policy updates, without dashboard approval. The checked merge action
-preserves genuine sign-offs and dispatches full CI for the exact merged commit.
-
+integration gaps and the lint backlog remain documented limitations.
 Platform checks use stable minimum/current lane names so a Go patch update does
 not invalidate required-check names or suppress binary artifacts. The minimum
 lane stays on Go 1.26 patches; the current lane may advance to new Go releases.
@@ -85,3 +95,19 @@ Their stored workflows and credentials are preserved for separate validation.
 The self-update command defaults to upstream Pelican; do not use it to update this
 fork, because an upstream binary does not contain its network-mode customization.
 No fork release has been published.
+
+## Service startup follow-up
+
+The executable version smoke proves real CLI execution, not daemon readiness.
+A required service fixture must run on an isolated Linux runner with a real Docker
+daemon and a disposable network; use temporary data/log/archive/backup paths, a
+dedicated system user, isolated SFTP/API ports and disabled host log rotation.
+Provide a loopback panel fixture implementing boot-server pagination and state
+reset, then launch the actual built Wings executable. Require authenticated
+`/api/system` JSON and the empty server listing, reject unauthenticated requests,
+and prove SFTP readiness. Capture daemon logs and clean up the process group,
+network, user and temporary state on failure and cancellation. VPN/container game
+execution needs separate bounded fixtures; this migration does not claim it.
+The local macOS validation environment does not supply these privileged Linux
+prerequisites. Existing CLI, filesystem, SFTP, HTTP, race and CodeQL gates remain
+mandatory until this integration fixture is implemented and proven on its runner.
