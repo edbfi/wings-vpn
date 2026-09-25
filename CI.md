@@ -2,13 +2,15 @@
 
 Every pull request and default-branch push runs `ci`: hygiene/quality, Linux amd64
 and arm64 builds on Go 1.26.8 and 1.27.1, native macOS builds/race tests on both Go
-versions, and CodeQL. The shared dispatch guard and fail-closed aggregate require
-all expected jobs to succeed. No path filter may bypass this workflow.
+versions, CodeQL and the service startup fixture. The shared fail-closed aggregate
+requires all expected jobs to succeed. No path filter may bypass this workflow.
 
-Shared actions, workflows and presets use immutable `v3.0.1` references.
-Renovate is the sole ongoing dependency merge owner. It merges eligible dependency
-PRs by rebasing only after current required CI and policy checks pass. Native
-platform automerge stays off. Shared Renovate policy updates remain manual;
+Shared actions, workflows and presets use immutable `v4.0.0` references.
+Renovate is the sole ongoing dependency merge owner. Through the shared
+`automerge.json` preset it arms GitHub auto-merge with the rebase strategy, so
+eligible dependency PRs merge only after current required CI and policy checks
+pass. This needs repository auto-merge and rebase merging enabled; merge commits
+stay allowed for upstream syncs. Shared Renovate policy updates remain manual;
 release-age rules, holds and repository-specific updater ownership still apply.
 The legacy Actions merger and its comment commands are retired.
 
@@ -16,10 +18,11 @@ The separate PR policy workflow verifies Conventional Commit titles, genuine
 matching author sign-offs, Renovate provenance, holds, outstanding review requests
 and unresolved changes requests. Require its actual emitted policy context alongside
 all existing application/content checks, pinned to GitHub Actions, with strict
-up-to-date branch protection. Preserve stronger review requirements. Explicit CI
-dispatches do not substitute for a missing metadata policy result. Review exact
-head/base, full diffs and all required results before a bootstrap merge, then
-verify resulting default-branch CI. Repository-specific updater ownership and
+up-to-date branch protection. Preserve stronger review requirements. After a
+pass, policy re-runs the other event's older failed verdict for the same head.
+Explicit CI dispatches take no inputs and do not substitute for a missing metadata
+policy result. Review exact head/base, full diffs and all required results before
+a bootstrap merge, then verify resulting default-branch CI. Repository-specific updater ownership and
 manual publication or delivery controls remain unchanged.
 
 Go 1.26 is now the minimum: `golang.org/x/crypto` 0.56.0 requires it and fixes the
@@ -65,7 +68,7 @@ Sources: [AuthZ advisory](https://github.com/moby/moby/security/advisories/GHSA-
 
 Upstream sync now uses PRs for both clean and conflicted merges, resolves the
 upstream/default branches from Git metadata, deduplicates existing sync PRs and
-explicitly dispatches CI for the exact commit. Optional existing SYNC_PAT and
+explicitly dispatches `ci.yml` on the sync branch. Optional existing SYNC_PAT and
 NanoGPT configuration is preserved; clean merges never call the paid model.
 Trusted helper scripts are copied before merging upstream. Conflict markers and
 unresolved code fail ordinary CI. Enable Actions to create PRs; the repository

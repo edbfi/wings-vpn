@@ -336,12 +336,10 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-        PR_NUMBER: ${{ steps.pr.outputs.number }}
         SYNC_BRANCH: ${{ steps.branch.outputs.branch }}
       run: |
-        head_sha=$(git rev-parse HEAD)
         for attempt in 1 2 3; do
-          if gh workflow run ci.yml --ref "$SYNC_BRANCH" -f "pr-number=$PR_NUMBER" -f "expected-head-sha=$head_sha"; then
+          if gh workflow run ci.yml --ref "$SYNC_BRANCH"; then
             exit 0
           fi
           sleep "$((attempt * 2))"

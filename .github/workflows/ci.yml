@@ -6,18 +6,7 @@ concurrency:
   group: ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  guard:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 5
-    steps:
-      - uses: edbfi/automation/actions/dispatch-guard@v3.0.1
-        with:
-          token: ${{ github.token }}
-          pr-number: ${{ inputs.pr-number }}
-          expected-head-sha: ${{ inputs.expected-head-sha }}
-          expected-default-sha: ${{ inputs.expected-default-sha }}
   quality:
-    needs: guard
     runs-on: ubuntu-26.04
     timeout-minutes: 30
     steps:
@@ -38,17 +27,14 @@ jobs:
       - run: bash .github/scripts/quality.sh
       - run: git diff --exit-code HEAD
   platforms:
-    needs: guard
     uses: ./.github/workflows/push.yaml
   codeql:
-    needs: guard
     uses: ./.github/workflows/codeql.yaml
     permissions:
       contents: read
       actions: read
       security-events: write
   service:
-    needs: guard
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
@@ -66,7 +52,6 @@ jobs:
     name: ci / required
     if: always()
     needs:
-      - guard
       - quality
       - platforms
       - codeql
@@ -74,32 +59,13 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      - uses: edbfi/automation/actions/dispatch-guard@v3.0.1
-        with:
-          token: ${{ github.token }}
-          pr-number: ${{ inputs.pr-number }}
-          expected-head-sha: ${{ inputs.expected-head-sha }}
-          expected-default-sha: ${{ inputs.expected-default-sha }}
-      - uses: edbfi/automation/actions/gate@v3.0.1
+      - uses: edbfi/automation/actions/gate@v4.0.0
         with:
           needs: ${{ toJSON(needs) }}
-          required: guard quality platforms codeql service
+          required: quality platforms codeql service
 'on':
   pull_request:
   push:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      pr-number:
-        description: PR number for a repair dispatch
-        type: string
-        default: ''
-      expected-head-sha:
-        description: Exact repaired PR commit
-        type: string
-        default: ''
-      expected-default-sha:
-        description: Exact current default-branch commit
-        type: string
-        default: ''
