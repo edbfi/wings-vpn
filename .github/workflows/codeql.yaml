@@ -22,14 +22,14 @@ jobs:
         go-version: 1.27.1
         cache: true
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4.38.1
+      uses: github/codeql-action/init@v4.38.2
       with:
         languages: ${{ matrix.language }}
         build-mode: manual
     - name: Build locked Go source
       run: go build -mod=readonly ./...
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4.38.1
+      uses: github/codeql-action/analyze@v4.38.2
     timeout-minutes: 40
 'on':
   workflow_call: {}
