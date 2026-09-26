@@ -9,7 +9,7 @@ require (
 	github.com/acobaugh/osrelease v0.1.0
 	github.com/apex/log v1.9.0
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
-	github.com/beevik/etree v1.8.0
+	github.com/beevik/etree v1.8.1
 	github.com/buger/jsonparser v1.6.1
 	github.com/cenkalti/backoff/v7 v7.0.0
 	github.com/creasty/defaults v1.11.0
@@ -29,7 +29,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/icza/dyno v0.0.0-20260912175837-51f8ab52fd15
 	github.com/juju/ratelimit v1.0.2
-	github.com/klauspost/compress v1.20.0
+	github.com/klauspost/compress v1.20.1
 	github.com/klauspost/pgzip v1.2.6
 	github.com/magiconair/properties v1.18.12
 	github.com/mattn/go-colorable v0.1.15
