@@ -40,11 +40,11 @@ hooks = [
 ]
 
 # Local hooks — project-specific quality gates
-# Go tools are pinned in .github/tools/go.mod; the build targets Linux.
+# Go tools are pinned in tools/go.mod; the build targets Linux.
 [[repos]]
 repo = "local"
 hooks = [
-  { id = "gofumpt", name = "gofumpt", entry = "go tool -modfile=.github/tools/go.mod gofumpt -w", language = "system", types = ["go"] },
-  { id = "golangci-lint", name = "Go lint regression gate", entry = "python3 .github/scripts/lint.py", language = "system", pass_filenames = false, files = "(\\.go$|(^|/)go\\.(mod|sum)$|^\\.golangci\\.|^\\.github/(scripts/lint\\.py|lint-baseline\\.json)$)" },
-  { id = "go-build", name = "go build", entry = "env GOOS=linux CGO_ENABLED=0 go build ./...", language = "system", pass_filenames = false, files = "(\\.go$|(^|/)go\\.(mod|sum)$|^\\.golangci\\.|^\\.github/(scripts/lint\\.py|lint-baseline\\.json)$)" },
+  { id = "gofumpt", name = "gofumpt", entry = "go tool -modfile=tools/go.mod gofumpt -w", language = "system", types = ["go"] },
+  { id = "golangci-lint", name = "Go lint regression gate", entry = "python3 scripts/lint.py", language = "system", pass_filenames = false, files = "(\\.go$|(^|/)go\\.(mod|sum)$|^\\.golangci\\.|^scripts/(lint\\.py|lint-baseline\\.json)$)" },
+  { id = "go-build", name = "go build", entry = "env GOOS=linux CGO_ENABLED=0 go build ./...", language = "system", pass_filenames = false, files = "(\\.go$|(^|/)go\\.(mod|sum)$|^\\.golangci\\.|^scripts/(lint\\.py|lint-baseline\\.json)$)" },
 ]
