@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def load(name):
-    spec = importlib.util.spec_from_file_location(name, Path(".github/scripts") / f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, Path("scripts") / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

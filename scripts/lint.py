@@ -20,7 +20,7 @@ def compare(issues, baseline):
 
 def main():
     result = subprocess.run(
-        ["go", "tool", "-modfile=.github/tools/go.mod", "golangci-lint", "run"],
+        ["go", "tool", "-modfile=tools/go.mod", "golangci-lint", "run"],
         capture_output=True, text=True,
     )
     if result.returncode not in (0, 1):
@@ -33,7 +33,7 @@ def main():
     issues = report["Issues"] or []
     if result.returncode == 1 and not issues:
         raise RuntimeError("Linter failed without diagnostic records")
-    baseline = json.loads(Path(".github/lint-baseline.json").read_text())
+    baseline = json.loads(Path("scripts/lint-baseline.json").read_text())
     new = compare(issues, baseline["diagnostics"])
     print(f"{len(issues)} existing Go lint diagnostics; {sum(new.values())} new diagnostics")
     for issue, count in new.items():
