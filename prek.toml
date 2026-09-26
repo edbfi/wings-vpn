@@ -1,5 +1,10 @@
 # prek.toml — pre-commit hooks configuration
 # Docs: https://prek.j178.dev/configuration/
+#:schema https://www.schemastore.org/prek.json
+
+minimum_prek_version = "0.3.2"
+default_install_hook_types = ["pre-commit", "commit-msg"]
+default_stages = ["pre-commit", "manual"]
 
 # Builtin hooks — fast, offline, Rust-native
 [[repos]]
@@ -18,7 +23,7 @@ hooks = [
   { id = "no-commit-to-branch", args = ["--branch", "main"] },
 ]
 
-# Conventional Commits — enforce Conventional Commit message format.
+# Conventional Commits — enforce Conventional Commit message format
 [[repos]]
 repo = "https://github.com/compilerla/conventional-pre-commit"
 rev = "v4.4.0"
@@ -26,7 +31,7 @@ hooks = [
   { id = "conventional-pre-commit", stages = ["commit-msg"] },
 ]
 
-# Secret / credential leak guard.
+# Secret / credential leak guard — fixtures and dotfiles must never carry tokens
 [[repos]]
 repo = "https://github.com/gitleaks/gitleaks"
 rev = "v8.30.1"
@@ -34,13 +39,12 @@ hooks = [
   { id = "gitleaks" },
 ]
 
-# Local hooks — Go quality gates.
-# Local tools are pinned separately from application dependencies; use Go 1.27.1.
-# CI keeps Linux builds and native macOS checks explicit.
+# Local hooks — project-specific quality gates
+# Go tools are pinned in .github/tools/go.mod; the build targets Linux.
 [[repos]]
 repo = "local"
 hooks = [
   { id = "gofumpt", name = "gofumpt", entry = "go tool -modfile=.github/tools/go.mod gofumpt -w", language = "system", types = ["go"] },
-  { id = "golangci-lint", name = "Go lint regression gate", entry = "python3 .github/scripts/lint.py", language = "system", types = ["go"], pass_filenames = false },
-  { id = "go-build", name = "go build", entry = "env GOOS=linux CGO_ENABLED=0 go build ./...", language = "system", types = ["go"], pass_filenames = false },
+  { id = "golangci-lint", name = "Go lint regression gate", entry = "python3 .github/scripts/lint.py", language = "system", pass_filenames = false, files = "(\\.go$|(^|/)go\\.(mod|sum)$|^\\.golangci\\.|^\\.github/(scripts/lint\\.py|lint-baseline\\.json)$)" },
+  { id = "go-build", name = "go build", entry = "env GOOS=linux CGO_ENABLED=0 go build ./...", language = "system", pass_filenames = false, files = "(\\.go$|(^|/)go\\.(mod|sum)$|^\\.golangci\\.|^\\.github/(scripts/lint\\.py|lint-baseline\\.json)$)" },
 ]
